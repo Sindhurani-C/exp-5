@@ -1,10 +1,12 @@
+
 pipeline {
     agent any
 
     environment {
         DOCKER_IMAGE = 'sindhuuu12/exp5'
-
         DOCKER_CREDENTIALS = 'dockerhub_credentials'
+
+        DOCKER_CMD = 'C:\\Users\\Lenovo\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
     }
 
     stages {
@@ -23,9 +25,15 @@ pipeline {
             }
         }
 
+        stage('Check Docker') {
+            steps {
+                bat '"%DOCKER_CMD%" --version'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
-                bat 'docker build -t %DOCKER_IMAGE%:latest .'
+                bat '"%DOCKER_CMD%" build -t %DOCKER_IMAGE%:latest .'
             }
         }
 
@@ -38,9 +46,11 @@ pipeline {
                         passwordVariable: 'DOCKER_PASS'
                     )
                 ]) {
-                    bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
-                    bat 'docker push %DOCKER_IMAGE%:latest'
-                    bat 'docker logout'
+                    bat 'echo %DOCKER_PASS% | "%DOCKER_CMD%" login -u %DOCKER_USER% --password-stdin'
+
+                    bat '"%DOCKER_CMD%" push %DOCKER_IMAGE%:latest'
+
+                    bat '"%DOCKER_CMD%" logout'
                 }
             }
         }
@@ -56,4 +66,3 @@ pipeline {
         }
     }
 }
-
