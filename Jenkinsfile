@@ -48,28 +48,35 @@ pipeline {
                 ]) {
 
                     powershell '''
-                        $env:DOCKER_PASS | & $env:DOCKER_CMD login -u $env:DOCKER_USER --password-stdin
+    Write-Host "Jenkins is running as:"
+    whoami
 
-                        if ($LASTEXITCODE -ne 0) {
-                            exit $LASTEXITCODE
-                        }
-                    '''
+    Write-Host "Docker username received: $env:DOCKER_USER"
+    Write-Host "Password injected: $(-not [string]::IsNullOrEmpty($env:DOCKER_PASS))"
 
-                    bat '"%DOCKER_CMD%" push %DOCKER_IMAGE%:latest'
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = $env:DOCKER_CMD
+    $psi.Arguments = "login --username `"$env:DOCKER_USER`" --password-stdin"
+    $psi.UseShellExecute = $false
+    $psi.RedirectStandardInput = $true
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
 
-                    bat '"%DOCKER_CMD%" logout'
-                }
-            }
-        }
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $psi
+
+    [void]$process.Start()
+    $process.StandardInput.WriteLine($env:DOCKER_PASS)
+    $process.StandardInput.Close()
+
+    $output = $process.StandardOutput.ReadToEnd()
+    $errorOutput = $process.StandardError.ReadToEnd()
+    $process.WaitForExit()
+
+    Write-Output $output
+
+    if ($process.ExitCode -ne 0) {
+        Write-Error $errorOutput
+        exit $process.ExitCode
     }
-
-    post {
-        success {
-            echo 'Pipeline executed successfully!'
-        }
-
-        failure {
-            echo 'Pipeline execution failed!'
-        }
-    }
-}
+'''
