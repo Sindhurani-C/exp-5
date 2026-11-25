@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'sindhuuu12/exp5
+        DOCKER_IMAGE = 'sindhuuu12/exp5'
 '
         DOCKER_CREDENTIALS = 'dockerhub_credentials'
     }
