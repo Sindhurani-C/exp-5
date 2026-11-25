@@ -4,7 +4,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'sindhuuu12/exp5'
-        DOCKER_CREDENTIALS = 'dockerhub_credentials'
+        DOCKER_CREDENTIALS = 'dockerhub-new'
 
         DOCKER_CMD = 'C:\\Users\\Lenovo\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
     }
@@ -41,7 +41,7 @@ pipeline {
             steps {
                 withCredentials([
                     usernamePassword(
-                        credentialsId: 'dockerhub_credentials',
+                        credentialsId: 'dockerhub-new',
                         usernameVariable: 'DOCKER_USER',
                         passwordVariable: 'DOCKER_PASS'
                     )
