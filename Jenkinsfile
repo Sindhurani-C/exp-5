@@ -46,7 +46,14 @@ pipeline {
                         passwordVariable: 'DOCKER_PASS'
                     )
                 ]) {
-                    bat 'echo %DOCKER_PASS% | "%DOCKER_CMD%" login -u %DOCKER_USER% --password-stdin'
+
+                    powershell '''
+                        $env:DOCKER_PASS | & $env:DOCKER_CMD login -u $env:DOCKER_USER --password-stdin
+
+                        if ($LASTEXITCODE -ne 0) {
+                            exit $LASTEXITCODE
+                        }
+                    '''
 
                     bat '"%DOCKER_CMD%" push %DOCKER_IMAGE%:latest'
 
