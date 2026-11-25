@@ -43,26 +43,22 @@ pipeline {
                         passwordVariable: 'DOCKER_PASS'
                     )
                 ]) {
-                    powershell '''
-                        $env:DOCKER_PASS | & $env:DOCKER_CMD login -u $env:DOCKER_USER --password-stdin
-                        if ($LASTEXITCODE -ne 0) {
-                            exit $LASTEXITCODE
-                        }
-                    '''
+                   powershell '''
+    Write-Host "Jenkins Windows account:"
+    whoami
 
-                    bat '"%DOCKER_CMD%" push %DOCKER_IMAGE%:latest'
-                    bat '"%DOCKER_CMD%" logout'
-                }
-            }
-        }
+    Write-Host "Docker username: $env:DOCKER_USER"
+
+    if ([string]::IsNullOrEmpty($env:DOCKER_PASS)) {
+        Write-Host "Password injected: NO"
+        exit 1
+    } else {
+        Write-Host "Password injected: YES"
     }
 
-    post {
-        success {
-            echo 'Pipeline executed successfully!'
-        }
-        failure {
-            echo 'Pipeline execution failed!'
-        }
+    $env:DOCKER_PASS | & $env:DOCKER_CMD login -u $env:DOCKER_USER --password-stdin
+
+    if ($LASTEXITCODE -ne 0) {
+        exit $LASTEXITCODE
     }
-}
+'''
